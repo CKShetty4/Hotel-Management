@@ -1,5 +1,5 @@
 # Hotel Management System in C
-This is a hotel management system designed to streamline operations and enhance guest experience. Built in C, it offers a terminal interface for guests and hotel staff.
+This is a hotel management system designed to streamline operations and enhance guest experience. Built in C, it offers a terminal interface for guests.
 
 **Features:**
 - Room Selection and Booking:
