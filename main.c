@@ -37,18 +37,24 @@ void initRooms() {
     FILE *fp = fopen("room.txt", "r");
     if (fp == NULL) {
         fp = fopen("room.txt", "w");
-        for (int i = 0; i < numRooms; i++) {
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Standard", 0, "");
-            i++;
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Executive", 0, "");
-            i++;
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Presidential_Suite", 0, "");
-            i++;
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Penthouse_Suite", 0, "");
-            i++;
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Deluxe", 0, "");
-            i++;
-            fprintf(fp, "%d %s %d %s\n", i + 1, "Superior", 0, "");
+        int roomNumber = 1;
+        for (int i = 0; i < 10; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Standard", 0, "");
+        }
+        for (int i = 0; i < 8; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Executive", 0, "");
+        }
+        for (int i = 0; i < 6; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Presidential_Suite", 0, "");
+        }
+        for (int i = 0; i < 4; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Penthouse_Suite", 0, "");
+        }
+        for (int i = 0; i < 2; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Deluxe", 0, "");
+        }
+        for (int i = 0; i < 1; i++) {
+            fprintf(fp, "%d %s %d %s\n", roomNumber++, "Superior", 0, "");
         }
         fclose(fp);
     } else {
@@ -200,20 +206,24 @@ void viewRooms() {
     }
 
     int countStandard = 0, countExecutive = 0, countPresidential = 0, countPenthouse = 0, countDeluxe = 0, countSuperior = 0;
-    Room room;
-    while (fscanf(fp, "%d %s %d %19s\n", &room.roomNumber, room.roomType, &room.isBooked, room.guestName) == 4) {
-        if (!room.isBooked) {
-            if (strcmp(room.roomType, "Standard") == 0) {
+    char line[1024];
+    while (fgets(line, 1024, fp)) {
+        char roomType[20];
+        int roomNumber, isBooked;
+        char guestName[50];
+        sscanf(line, "%d %s %d %s", &roomNumber, roomType, &isBooked, guestName);
+        if (!isBooked) {
+            if (strcmp(roomType, "Standard") == 0) {
                 countStandard++;
-            } else if (strcmp(room.roomType, "Executive") == 0) {
+            } else if (strcmp(roomType, "Executive") == 0) {
                 countExecutive++;
-            } else if (strcmp(room.roomType, "Presidential_Suite") == 0) {
+            } else if (strcmp(roomType, "Presidential_Suite") == 0) {
                 countPresidential++;
-            } else if (strcmp(room.roomType, "Penthouse_Suite") == 0) {
+            } else if (strcmp(roomType, "Penthouse_Suite") == 0) {
                 countPenthouse++;
-            } else if (strcmp(room.roomType, "Deluxe") == 0) {
+            } else if (strcmp(roomType, "Deluxe") == 0) {
                 countDeluxe++;
-            } else if (strcmp(room.roomType, "Superior") == 0) {
+            } else if (strcmp(roomType, "Superior") == 0) {
                 countSuperior++;
             }
         }
@@ -242,6 +252,7 @@ void viewRooms() {
         printf("Superior Room \t\t\t %d  \t\t 59999\n", countSuperior);
     }
 }
+
 
 void bookRoom() {
     int roomType, numRoomsAvailable;

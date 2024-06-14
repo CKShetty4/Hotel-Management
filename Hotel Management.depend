@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1718376789 source:d:\ckshetty\projects\c\hotel-management\main.c
+1718377742 source:d:\ckshetty\projects\c\hotel-management\main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
