@@ -1,0 +1,3 @@
+Veg_Biryani 150 15
+Veg_Sandwich 100 20
+Fruit_Salad 50 25
