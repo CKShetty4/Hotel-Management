@@ -148,6 +148,7 @@ void adminLogin() {
 }
 
 void guestMenu() {
+    system("cls");
     int choice;
     printf("1. View rooms\n");
     printf("2. Book room\n");
@@ -204,10 +205,44 @@ void adminMenu() {
 }
 
 void viewRooms() {
+    int countStandard = 0, countExecutive = 0, countPresidential = 0, countPenthouse= 0, countDeluxe = 0, countSuperior = 0;
     for (int i = 0; i < numRooms; i++) {
         if (!rooms[i].isBooked) {
-            printf("Room Number: %d, Room Type: %s, Price: %d\n", rooms[i].roomNumber, rooms[i].roomType, rooms[i].price);
+            if (strcmp(rooms[i].roomType, "Standard") == 0) {
+                countStandard++;
+            } else if (strcmp(rooms[i].roomType, "Executive") == 0) {
+                countExecutive++;
+            } else if (strcmp(rooms[i].roomType, "Presidential Suite") == 0) {
+                countPresidential++;
+            }else if (strcmp(rooms[i].roomType, "Penthouse Suite") == 0) {
+                countPenthouse++;
+            }else if (strcmp(rooms[i].roomType, "Deluxe") == 0) {
+                countDeluxe++;
+            }else if (strcmp(rooms[i].roomType, "Superior") == 0) {
+                countSuperior++;
+            }
         }
+    }
+
+    printf("Room Types and Availability:\n");
+    printf("Room Type \t\t\t Available \t Price\n");
+    if (countStandard > 0) {
+        printf("Standard Room \t\t\t %d   \t\t 999\n", countStandard);
+    }
+    if (countExecutive > 0) {
+        printf("Executive Room \t\t\t %d   \t\t 4999\n", countExecutive);
+    }
+    if (countPresidential > 0) {
+        printf("Presidential Suite \t\t %d   \t\t 7999\n", countPresidential);
+    }
+    if (countPenthouse > 0) {
+        printf("Penthouse Suite \t\t %d   \t\t 17999\n", countPenthouse);
+    }
+    if (countDeluxe > 0) {
+        printf("Deluxe Room \t\t\t %d   \t\t 34999\n", countDeluxe);
+    }
+    if (countSuperior > 0) {
+        printf("Superior Room \t\t\t %d  \t\t 59999\n", countSuperior);
     }
 }
 
@@ -232,7 +267,7 @@ void cancelBooking() {
     for (int i = 0; i < numRooms; i++) {
         if (rooms[i].roomNumber == roomNumber && rooms[i].isBooked) {
             rooms[i].isBooked = false;
-            printf("Booking cancelled successfully!\n");
+            printf("Booking canceled successfully!\n");
             return;
         }
     }
