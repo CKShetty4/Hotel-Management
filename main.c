@@ -21,8 +21,8 @@ typedef struct {
 typedef struct {
     int roomNumber;
     char roomType[20];
-    int price;
     bool isBooked;
+    char guestName[20];
 } Room;
 
 Guest guests[MAX_GUESTS];
@@ -31,44 +31,32 @@ Room rooms[MAX_ROOMS];
 
 int numGuests = 0;
 int numFoodItems = 0;
-int numRooms = 10 + 8 + 6 + 4 + 2 + 1;
+int numRooms = 30;
 
 void initRooms() {
-    int i;
-    for (i = 0; i < 10; i++) {
-        rooms[i].roomNumber = i + 1;
-        strcpy(rooms[i].roomType, "Standard");
-        rooms[i].price = 999;
-        rooms[i].isBooked = false;
+    FILE *fp = fopen("room.txt", "r");
+    if (fp == NULL) {
+        fp = fopen("room.txt", "w");
+        for (int i = 0; i < numRooms; i++) {
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Standard", 0, "");
+            i++;
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Executive", 0, "");
+            i++;
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Presidential_Suite", 0, "");
+            i++;
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Penthouse_Suite", 0, "");
+            i++;
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Deluxe", 0, "");
+            i++;
+            fprintf(fp, "%d %s %d %s\n", i + 1, "Superior", 0, "");
+        }
+        fclose(fp);
+    } else {
+        for (int i = 0; i < numRooms; i++) {
+            fscanf(fp, "%d %s %d %s\n", &rooms[i].roomNumber, rooms[i].roomType, &rooms[i].isBooked, rooms[i].guestName);
+        }
+        fclose(fp);
     }
-    for (i = 10; i < 18; i++) {
-        rooms[i].roomNumber = i + 1;
-        strcpy(rooms[i].roomType, "Executive");
-        rooms[i].price = 4999;
-        rooms[i].isBooked = false;
-    }
-    for (i = 18; i < 24; i++) {
-        rooms[i].roomNumber = i + 1;
-        strcpy(rooms[i].roomType, "Presidential Suite");
-        rooms[i].price = 7999;
-        rooms[i].isBooked = false;
-    }
-    for (i = 24; i < 28; i++) {
-        rooms[i].roomNumber = i + 1;
-        strcpy(rooms[i].roomType, "Penthouse Suite");
-        rooms[i].price = 17999;
-        rooms[i].isBooked = false;
-    }
-    for (i = 28; i < 30; i++) {
-        rooms[i].roomNumber = i + 1;
-        strcpy(rooms[i].roomType, "Deluxe");
-        rooms[i].price = 34999;
-        rooms[i].isBooked = false;
-    }
-    rooms[30].roomNumber = 31;
-    strcpy(rooms[30].roomType, "Superior");
-    rooms[30].price = 59999;
-    rooms[30].isBooked = false;
 }
 
 void initFoodItems() {
@@ -110,9 +98,9 @@ void registerGuest() {
 void loginGuest() {
     char username[20], password[20];
     printf("Enter username: ");
-    scanf("%19s", username);  // Use %19s to prevent buffer overflow
+    scanf("%19s", username);
     printf("Enter password: ");
-    scanf("%19s", password);  // Use %19s to prevent buffer overflow
+    scanf("%19s", password);
     FILE *fp = fopen("guest_credentials.txt", "r");
     if (fp == NULL) {
         printf("Error opening file!\n");
@@ -205,24 +193,33 @@ void adminMenu() {
 }
 
 void viewRooms() {
-    int countStandard = 0, countExecutive = 0, countPresidential = 0, countPenthouse= 0, countDeluxe = 0, countSuperior = 0;
-    for (int i = 0; i < numRooms; i++) {
-        if (!rooms[i].isBooked) {
-            if (strcmp(rooms[i].roomType, "Standard") == 0) {
+    FILE *fp = fopen("room.txt", "r");
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    int countStandard = 0, countExecutive = 0, countPresidential = 0, countPenthouse = 0, countDeluxe = 0, countSuperior = 0;
+    Room room;
+    while (fscanf(fp, "%d %s %d %19s\n", &room.roomNumber, room.roomType, &room.isBooked, room.guestName) == 4) {
+        if (!room.isBooked) {
+            if (strcmp(room.roomType, "Standard") == 0) {
                 countStandard++;
-            } else if (strcmp(rooms[i].roomType, "Executive") == 0) {
+            } else if (strcmp(room.roomType, "Executive") == 0) {
                 countExecutive++;
-            } else if (strcmp(rooms[i].roomType, "Presidential Suite") == 0) {
+            } else if (strcmp(room.roomType, "Presidential_Suite") == 0) {
                 countPresidential++;
-            }else if (strcmp(rooms[i].roomType, "Penthouse Suite") == 0) {
+            } else if (strcmp(room.roomType, "Penthouse_Suite") == 0) {
                 countPenthouse++;
-            }else if (strcmp(rooms[i].roomType, "Deluxe") == 0) {
+            } else if (strcmp(room.roomType, "Deluxe") == 0) {
                 countDeluxe++;
-            }else if (strcmp(rooms[i].roomType, "Superior") == 0) {
+            } else if (strcmp(room.roomType, "Superior") == 0) {
                 countSuperior++;
             }
         }
     }
+
+    fclose(fp);
 
     printf("Room Types and Availability:\n");
     printf("Room Type \t\t\t Available \t Price\n");
@@ -247,17 +244,91 @@ void viewRooms() {
 }
 
 void bookRoom() {
-    int roomNumber;
-    printf("Enter room number: ");
-    scanf("%d", &roomNumber);
+    int roomType, numRoomsAvailable;
+    printf("Enter room type (1: Standard, 2: Executive, 3: Presidential_Suite, 4: Penthouse_Suite, 5: Deluxe, 6: Superior): ");
+    scanf("%d", &roomType);
+
+    switch (roomType) {
+       case 1:
+            numRoomsAvailable = getNumRoomsAvailable("Standard");
+            if (numRoomsAvailable == 0) {
+                printf("No Standard rooms available!\n");
+                return;
+            }
+            assignRoom("Standard", numRoomsAvailable);
+            break;
+        case 2:
+            numRoomsAvailable = getNumRoomsAvailable("Executive");
+            if (numRoomsAvailable == 0) {
+                printf("No Executive rooms available!\n");
+                return;
+            }
+            assignRoom("Executive", numRoomsAvailable);
+            break;
+        case 3:
+            numRoomsAvailable = getNumRoomsAvailable("Presidential_Suite");
+            if (numRoomsAvailable == 0) {
+                printf("No Presidential_Suites available!\n");
+                return;
+            }
+            assignRoom("Presidential_Suite", numRoomsAvailable);
+            break;
+        case 4:
+            numRoomsAvailable = getNumRoomsAvailable("Penthouse_Suite");
+            if (numRoomsAvailable == 0) {
+                printf("No Penthouse_Suites available!\n");
+                return;
+            }
+            assignRoom("Penthouse_Suite", numRoomsAvailable);
+            break;
+        case 5:
+            numRoomsAvailable = getNumRoomsAvailable("Deluxe");
+            if (numRoomsAvailable == 0) {
+                printf("No Deluxe rooms available!\n");
+                return;
+            }
+            assignRoom("Deluxe", numRoomsAvailable);
+            break;
+        case 6:
+            numRoomsAvailable = getNumRoomsAvailable("Superior");
+            if (numRoomsAvailable == 0) {
+                printf("No Superior rooms available!\n");
+                return;
+            }
+            assignRoom("Superior", numRoomsAvailable);
+            break;
+        default:
+            printf("Invalid room type!\n");
+            return;
+    }
+
+    printf("Room booked successfully!\n");
+}
+
+int getNumRoomsAvailable(const char* roomType) {
+    int count = 0;
     for (int i = 0; i < numRooms; i++) {
-        if (rooms[i].roomNumber == roomNumber &&!rooms[i].isBooked) {
+        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0) {
+            count++;
+        }
+    }
+    return count;
+}
+
+void assignRoom(const char* roomType, int numRoomsAvailable) {
+    for (int i = 0; i < numRooms; i++) {
+        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0) {
+            printf("Enter guest name: ");
+            scanf("%19s", rooms[i].guestName);
             rooms[i].isBooked = true;
-            printf("Room booked successfully!\n");
+            FILE *fp = fopen("room.txt", "w");
+            for (int j = 0; j < numRooms; j++) {
+                fprintf(fp, "%d %s %d %s\n", rooms[j].roomNumber, rooms[j].roomType, rooms[j].isBooked, rooms[j].guestName);
+            }
+            fclose(fp);
             return;
         }
     }
-    printf("Room not available!\n");
 }
 
 void cancelBooking() {
@@ -265,8 +336,14 @@ void cancelBooking() {
     printf("Enter room number: ");
     scanf("%d", &roomNumber);
     for (int i = 0; i < numRooms; i++) {
-        if (rooms[i].roomNumber == roomNumber && rooms[i].isBooked) {
+        if (rooms[i].roomNumber == roomNumber && strcmp(rooms[i].guestName, "")!= 0) {
+            strcpy(rooms[i].guestName, "");
             rooms[i].isBooked = false;
+            FILE *fp = fopen("room.txt", "w");
+            for (int j = 0; j < numRooms; j++) {
+                fprintf(fp, "%d %s %d %s\n", rooms[j].roomNumber, rooms[j].roomType, rooms[j].isBooked, rooms[j].guestName);
+            }
+            fclose(fp);
             printf("Booking canceled successfully!\n");
             return;
         }
@@ -292,6 +369,11 @@ void orderFood() {
         if (strcmp(foodItems[i].name, foodItem) == 0) {
             foodItems[i].quantity -= quantity;
             printf("Food ordered successfully!\n");
+            FILE *fp = fopen("food_items.txt", "w");
+            for (int j = 0;j < numFoodItems; j++) {
+                fprintf(fp, "%s %d %d\n", foodItems[j].name, foodItems[j].price, foodItems[j].quantity);
+            }
+            fclose(fp);
             return;
         }
     }
@@ -301,8 +383,20 @@ void orderFood() {
 void generateBill() {
     int total = 0;
     for (int i = 0; i < numRooms; i++) {
-        if (rooms[i].isBooked) {
-            total += rooms[i].price;
+        if (strcmp(rooms[i].guestName, "") != 0) {
+            if (strcmp(rooms[i].roomType, "Standard") == 0) {
+                total += 999;
+            } else if (strcmp(rooms[i].roomType, "Executive") == 0) {
+                total += 4999;
+            } else if (strcmp(rooms[i].roomType, "Presidential_Suite") == 0) {
+                total += 7999;
+            } else if (strcmp(rooms[i].roomType, "Penthouse_Suite") == 0) {
+                total += 17999;
+            } else if (strcmp(rooms[i].roomType, "Deluxe") == 0) {
+                total += 34999;
+            } else if (strcmp(rooms[i].roomType, "Superior") == 0) {
+                total += 59999;
+            }
         }
     }
     for (int i = 0; i < numFoodItems; i++) {
