@@ -1,0 +1,2 @@
+Veg_pulav 90 1
+Chicken_tikka 150 2

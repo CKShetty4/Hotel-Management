@@ -447,11 +447,35 @@ void orderFood() {
         if (strcmp(foodItems[i].name, foodItem) == 0) {
             foodItems[i].quantity -= quantity;
             printf("Food ordered successfully!\n");
-            FILE *fp = fopen("food_items.txt", "w");
-            for (int j = 0;j < numFoodItems; j++) {
-                fprintf(fp, "%s %d %d\n", foodItems[j].name, foodItems[j].price, foodItems[j].quantity);
+
+            // Get the guest name
+            FILE *file = fopen("currentuser.txt", "r");
+            if (file == NULL) {
+                printf("Could not open file\n");
+                return;
             }
-            fclose(fp);
+
+            char GuestName[20];
+            if (fscanf(file, "%19s", GuestName)!= 1) {
+                printf("Could not read from file\n");
+                fclose(file);
+                return;
+            }
+
+            fclose(file);
+
+            // Write the ordered food to the Food_GuestName.txt file
+            char foodFileName[30];
+            sprintf(foodFileName, "Food_%s.txt", GuestName);
+            FILE *foodFile = fopen(foodFileName, "a");
+            if (foodFile == NULL) {
+                printf("Could not open food file\n");
+                return;
+            }
+
+            fprintf(foodFile, "%s %d %d\n", foodItems[i].name, foodItems[i].price, quantity);
+            fclose(foodFile);
+
             return;
         }
     }
@@ -460,40 +484,119 @@ void orderFood() {
 
 void generateBill() {
     int total = 0;
+    FILE *file = fopen("currentuser.txt", "r");
+    if (file == NULL) {
+        printf("Could not open file\n");
+        return 1;
+    }
+
+    char GuestName[20];
+    if (fscanf(file, "%19s", GuestName) != 1) {
+        printf("Could not read from file\n");
+        fclose(file);
+        return 1;
+    }
+
+    fclose(file);
+
+    // Open the bill file
+    char billFileName[25];
+    sprintf(billFileName, "%s.txt", GuestName);
+    FILE *billFile = fopen(billFileName, "w");
+    if (billFile == NULL) {
+        printf("Could not open bill file\n");
+        return 1;
+    }
+
+    int standardCount = 0, executiveCount = 0, presidentialSuiteCount = 0, penthouseSuiteCount = 0, deluxeCount = 0, superiorCount = 0;
+
     for (int i = 0; i < numRooms; i++) {
-        if (strcmp(rooms[i].guestName, "") != 0) {
+        if (strcmp(rooms[i].guestName, GuestName) == 0) {
             if (strcmp(rooms[i].roomType, "Standard") == 0) {
-                total += 999;
+                standardCount++;
             } else if (strcmp(rooms[i].roomType, "Executive") == 0) {
-                total += 4999;
+                executiveCount++;
             } else if (strcmp(rooms[i].roomType, "Presidential_Suite") == 0) {
-                total += 7999;
+                presidentialSuiteCount++;
             } else if (strcmp(rooms[i].roomType, "Penthouse_Suite") == 0) {
-                total += 17999;
+                penthouseSuiteCount++;
             } else if (strcmp(rooms[i].roomType, "Deluxe") == 0) {
-                total += 34999;
+                deluxeCount++;
             } else if (strcmp(rooms[i].roomType, "Superior") == 0) {
-                total += 59999;
+                superiorCount++;
             }
         }
     }
-    for (int i = 0; i < numFoodItems; i++) {
-        total += foodItems[i].price * foodItems[i].quantity;
+
+    if (standardCount > 0) {
+        int standardPrice = 999;
+        fprintf(billFile, "Room (Standard) x %d = %d\n", standardCount, standardPrice * standardCount);
+        total += standardPrice * standardCount;
     }
+
+    if (executiveCount > 0) {
+        int executivePrice = 4999;
+        fprintf(billFile, "Room (Executive) x %d = %d\n", executiveCount, executivePrice * executiveCount);
+        total += executivePrice * executiveCount;
+    }
+
+    if (presidentialSuiteCount > 0) {
+        int presidentialSuitePrice = 7999;
+        fprintf(billFile, "Room (Presidential Suite) x %d = %d\n", presidentialSuiteCount, presidentialSuitePrice * presidentialSuiteCount);
+        total += presidentialSuitePrice * presidentialSuiteCount;
+    }
+
+    if (penthouseSuiteCount > 0) {
+        int penthouseSuitePrice = 17999;
+        fprintf(billFile, "Room (Penthouse Suite) x %d = %d\n", penthouseSuiteCount, penthouseSuitePrice * penthouseSuiteCount);
+        total += penthouseSuitePrice * penthouseSuiteCount;
+    }
+
+    if (deluxeCount > 0) {
+        int deluxePrice = 34999;
+        fprintf(billFile, "Room (Deluxe) x %d = %d\n", deluxeCount, deluxePrice * deluxeCount);
+        total += deluxePrice * deluxeCount;
+    }
+
+    if (superiorCount > 0) {
+        int superiorPrice = 59999;
+        fprintf(billFile, "Room (Superior) x %d = %d\n", superiorCount, superiorPrice * superiorCount);
+        total += superiorPrice * superiorCount;
+    }
+
+    // Calculate food charges
+    char foodFileName[25];
+    sprintf(foodFileName, "Food_%s.txt", GuestName);
+    FILE *foodFile = fopen(foodFileName, "r");
+    if (foodFile != NULL) {
+        char foodType[20];
+        int pricePerUnit, quantity;
+        while (fscanf(foodFile, "%19s %d %d", foodType, &pricePerUnit, &quantity) == 3) {
+            int foodTotal = pricePerUnit * quantity;
+            fprintf(billFile, "%s x %d = %d\n", foodType, quantity, foodTotal);
+            total += foodTotal;
+        }
+        fclose(foodFile);
+    }
+
+    // Calculate GST
     float gst;
     if (total < 1000) {
         gst = total * 0.12;
+        fprintf(billFile, "12%% GST   = %d\n", (int)gst);
     } else if (total >= 1000 && total <= 7500) {
-        gst = total * 0.12;
+        gst = total * 0.15;
+        fprintf(billFile, "15%% GST   = %d\n", (int)gst);
     } else {
         gst = total * 0.18;
+        fprintf(billFile, "18%% GST   = %d\n", (int)gst);
     }
     total += gst;
-    printf("Total bill: %d\n", total);
-    FILE *fp = fopen("bill_guest_number.txt", "w");
-    fprintf(fp, "Bill Number: %d\n", 1);
-    fprintf(fp, "Total bill: %d\n", total);
-    fclose(fp);
+
+    // Print total bill
+    fprintf(billFile, "Total: %d\n", (int)total);
+    fclose(billFile);
+    printf("Bill generated successfully!\n");
 }
 
 void addFoodItem() {
