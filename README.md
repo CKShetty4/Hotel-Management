@@ -9,7 +9,7 @@ This is a hotel management system designed to streamline operations and enhance 
 	- Access a digital menu to browse and order food directly from the room.
 - Guest Management:
 	- Login for registered guests with secure access.
-	- Cancel existing bookings (with confirmed refunds).
+	- Cancel existing bookings (with cancelation charges).
 - Billing:
 	- Generate real-time bills for room charges and food orders.
 - Information Access:
