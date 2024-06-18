@@ -10,9 +10,8 @@ This is a hotel management system designed to streamline operations and enhance 
 - Guest Management:
 	- Login for registered guests with secure access.
 	- Cancel existing bookings (with confirmed refunds).
-- Billing and Payment:
+- Billing:
 	- Generate real-time bills for room charges and food orders.
-	- Make secure payments through the system.
 - Information Access:
 	- Check room availability for desired dates.
 	- View personal details and booking history.
