@@ -6,6 +6,7 @@
 #define MAX_GUESTS 100
 #define MAX_FOOD_ITEMS 100
 #define MAX_ROOMS 30
+//creating variables of these types and access their individual fields
 
 typedef struct {
     char username[20];
@@ -25,6 +26,7 @@ typedef struct {
     char guestName[20];
 } Room;
 
+//global declarations
 Guest guests[MAX_GUESTS];
 FoodItem foodItems[MAX_FOOD_ITEMS];
 Room rooms[MAX_ROOMS];
@@ -32,12 +34,15 @@ Room rooms[MAX_ROOMS];
 int numGuests = 0;
 int numFoodItems = 0;
 int numRooms = 30;
-
+//User Defined Functions begin Here
+//Initializing Rooms. Creates room.txt file to store user and room details to check if booked or not.
 void initRooms() {
     FILE *fp = fopen("room.txt", "r");
     if (fp == NULL) {
         fp = fopen("room.txt", "w");
         int roomNumber = 1;
+        //Roomtype wise initialize
+    {
         for (int i = 0; i < 10; i++) {
             fprintf(fp, "%d %s %d %s\n", roomNumber++, "Standard", 0, "");
         }
@@ -57,6 +62,8 @@ void initRooms() {
             fprintf(fp, "%d %s %d %s\n", roomNumber++, "Superior", 0, "");
         }
         fclose(fp);
+    }
+
     } else {
         for (int i = 0; i < numRooms; i++) {
             fscanf(fp, "%d %s %d %s\n", &rooms[i].roomNumber, rooms[i].roomType, &rooms[i].isBooked, rooms[i].guestName);
@@ -64,7 +71,7 @@ void initRooms() {
         fclose(fp);
     }
 }
-
+//Initializing Food items. Creates food_items.txt file to store the list of food items available
 void initFoodItems() {
     FILE *fp = fopen("food_items.txt", "r");
     if (fp == NULL) {
@@ -87,7 +94,7 @@ void initFoodItems() {
     fclose(fp);
     numFoodItems = i;
 }
-
+//Creates guest_credentials.txt file to store the list of users
 void registerGuest() {
     Guest guest;
     printf("Enter username: ");
@@ -100,7 +107,7 @@ void registerGuest() {
     fprintf(fp, "%s %s\n", guest.username, guest.password);
     fclose(fp);
 }
-
+//Creates currentuser.txt file to maintain the user data throughout the programming.
 void loginGuest() {
     char username[20], password[20];
     printf("Enter username: ");
@@ -114,6 +121,7 @@ void loginGuest() {
     }
 
     char line[40];
+    //Login Check for User-name and password
     while (fgets(line, sizeof(line), fp)) {
         char fileUsername[20], filePassword[20];
         sscanf(line, "%s %s", fileUsername, filePassword);
@@ -136,7 +144,7 @@ void loginGuest() {
     printf("Invalid username or password!\n");
     fclose(fp);
 }
-
+//Admin Login with predefined User-name and Password
 void adminLogin() {
     char username[20], password[20];
     printf("Enter username: ");
@@ -150,18 +158,24 @@ void adminLogin() {
         printf("Invalid username or password!\n");
     }
 }
-
+//Menu to access the user features
 void guestMenu() {
     int choice;
     while (1) {
+    //menu graphics
+    {
         system("cls");
+        printf("______________________________________________________________________________________________________________________\n\n");
+        printf("                                                   Loophole Hotel\n");
+        printf("______________________________________________________________________________________________________________________\n\n");
         printf("1. View rooms\n");
         printf("2. Book room\n");
         printf("3. Cancel booking\n");
         printf("4. View food items\n");
         printf("5. Order food\n");
         printf("6. Generate bill\n");
-        printf("7. Exit\n");
+        printf("7. LogOut\n\n");
+    }
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice) {
@@ -190,15 +204,24 @@ void guestMenu() {
                 getch(); // wait for user to press a key
                 break;
             case 7:
-                exit(0);
-                break;
+                {
+                    char filename[] = "currentuser.txt";
+                    fclose(filename);
+                    if (remove(filename) == 0) {
+                        printf("logged out successfully\n", filename);
+                    } else {
+                        printf("Error Logging Out file %s\n", filename);
+                    }
+                }
+                getch();
+                return;
             default:
                 printf("Invalid choice!\n");
                 getch(); // wait for user to press a key
         }
     }
 }
-
+//Menu to access the admin features
 void adminMenu() {
     int choice;
     printf("1. Add food item\n");
@@ -216,11 +239,11 @@ void adminMenu() {
             printf("Invalid choice!\n");
     }
 }
-
+//View  Room types and Number of Vacant Room
 void viewRooms() {
     FILE *fp = fopen("room.txt", "r");
     if (fp == NULL) {
-        printf("Error opening file!\n");
+        printf("Error Loading Details!\n");
         return;
     }
 
@@ -249,7 +272,8 @@ void viewRooms() {
     }
 
     fclose(fp);
-
+//room type based counting
+{
     printf("Room Types and Availability:\n");
     printf("Room Type \t\t\t Available \t Price\n");
     if (countStandard > 0) {
@@ -272,10 +296,13 @@ void viewRooms() {
     }
 }
 
+}
 
+//----------------------------Booking and Assigning the Rooms Begin Here-----------------------------------------
+// Modifies the room.txt to k now which rooms are available and which are not
 void bookRoom() {
     int roomType;
-    printf("Enter room type (1: Standard, 2: Executive, 3: Presidential_Suite, 4: Penthouse_Suite, 5: Deluxe, 6: Superior): ");
+    printf(" (1: Standard, 2: Executive, 3: Presidential_Suite, 4: Penthouse_Suite, 5: Deluxe, 6: Superior)\n Enter room type : ");
     scanf("%d", &roomType);
 
     char roomTypeName[20];
@@ -303,8 +330,8 @@ void bookRoom() {
             return;
     }
 
-    int numAvailableRooms = getNumRoomsAvailable(roomTypeName);
-
+    int numAvailableRooms = getNumRoomsAvailable(roomTypeName);//to get the number of available rooms of the specified type.
+//checks
     if (numAvailableRooms == 0) {
         printf("No %s rooms available!\n", roomTypeName);
         return;
@@ -312,13 +339,17 @@ void bookRoom() {
 
     FILE *file = fopen("currentuser.txt", "r");
     if (file == NULL) {
-        printf("Could not open file\n");
+        printf("Login not verfied\n");
         return 1;
     }
 
     char guestName[20];
     if (fscanf(file, "%19s", guestName) != 1) {
-        printf("Could not read from file\n");
+        /*
+        reads a string from the file and stores it in the guestName array.
+        If the read operation fails, this line prints an error message, closes the file, and returns.
+        */
+        printf("Login not verified\n");
         fclose(file);
         return 1;
     }
@@ -326,11 +357,16 @@ void bookRoom() {
     fclose(file);
 
     int roomNumber = -1;
+    /*
+    The below for loop finds the first available room of the specified type.
+    If a room is found, its room number is stored in roomNumber, and the room's status is updated to booked.
+    */
     for (int i = 0; i < numRooms; i++) {
         if (strcmp(rooms[i].roomType, roomTypeName) == 0 && rooms[i].isBooked == 0) {
             roomNumber = rooms[i].roomNumber;
             rooms[i].isBooked = 1;
             strcpy(rooms[i].guestName, guestName);
+            printf("Your Room Number is : %d\n",roomNumber);
             break;
         }
     }
@@ -343,16 +379,16 @@ void bookRoom() {
     // Read from the existing file
     FILE *fp = fopen("room.txt", "r");
     if (fp == NULL) {
-        printf("Error opening file!\n");
+        printf("Error Booking!\n");
         return;
     }
 
     // Create a temporary file
     FILE *temp = fopen("temp.txt", "w");
-    if (temp == NULL) {
+    /*if (temp == NULL) {
         printf("Error creating temporary file!\n");
         return;
-    }
+    }*/
 
     char line[100];
     while (fgets(line, sizeof(line), fp)) {
@@ -370,7 +406,7 @@ void bookRoom() {
     fclose(fp);
     fclose(temp);
 
-    // Replace the original file with the temporary file
+    //effectively updating the original file.
     remove("room.txt");
     rename("temp.txt", "room.txt");
 }
@@ -384,31 +420,8 @@ int getNumRoomsAvailable(const char* roomType) {
     }
     return count;
 }
-
-void assignRoom(const char* roomType, int numRoomsAvailable) {
-    for (int i = 0; i < numRooms; i++) {
-        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0 && rooms[i].isBooked == 0) {
-            printf("Enter guest name: ");
-            scanf("%19s", rooms[i].guestName);
-            rooms[i].isBooked = 1;
-            FILE *fp = fopen("room.txt", "w");
-            for (int j = 0; j < numRooms; j++) {
-                fprintf(fp, "%d %s %d ", rooms[j].roomNumber, rooms[j].roomType, rooms[j].isBooked);
-                if (rooms[j].isBooked == 1) {
-                    fprintf(fp, "%s\n", rooms[j].guestName);
-                } else {
-                    fprintf(fp, "\n");
-                }
-            }
-            fclose(fp);
-
-            printf("Room booked successfully!\n");
-            return;
-        }
-    }
-    printf("No available rooms of type %s\n", roomType);
-}
-
+//----------------------------Booking and Assigning the Rooms Ends Here-----------------------------------------
+//Manage Cancellation
 void cancelBooking() {
     int roomNumber;
     printf("Enter room number: ");
@@ -429,6 +442,7 @@ void cancelBooking() {
     printf("Room not booked!\n");
 }
 
+//Food management
 void viewFoodItems() {
     printf("Item Name \t\t Price\t  Quantity\n");
     for (int i = 0; i < numFoodItems; i++) {
@@ -439,6 +453,7 @@ void viewFoodItems() {
 void orderFood() {
     char foodItem[50];
     int quantity;
+    viewFoodItems();
     printf("Enter food item: ");
     scanf("%s", foodItem);
     printf("Enter quantity: ");
@@ -481,35 +496,37 @@ void orderFood() {
     }
     printf("Food item not available!\n");
 }
-
+//Creates the Bill File with the user-name
 void generateBill() {
     int total = 0;
     FILE *file = fopen("currentuser.txt", "r");
     if (file == NULL) {
-        printf("Could not open file\n");
+        printf("Login not verfied\n");
         return 1;
     }
 
     char GuestName[20];
     if (fscanf(file, "%19s", GuestName) != 1) {
-        printf("Could not read from file\n");
+        printf("Login not verfied\n");
         fclose(file);
         return 1;
     }
 
     fclose(file);
 
-    // Open the bill file
+// Open the bill file
+{
     char billFileName[25];
     sprintf(billFileName, "%s.txt", GuestName);
     FILE *billFile = fopen(billFileName, "w");
     if (billFile == NULL) {
-        printf("Could not open bill file\n");
+        printf("Sorry!! Error generating Bill. Files may be missing.\n");
         return 1;
     }
 
     int standardCount = 0, executiveCount = 0, presidentialSuiteCount = 0, penthouseSuiteCount = 0, deluxeCount = 0, superiorCount = 0;
-
+//Calculate bill
+{
     for (int i = 0; i < numRooms; i++) {
         if (strcmp(rooms[i].guestName, GuestName) == 0) {
             if (strcmp(rooms[i].roomType, "Standard") == 0) {
@@ -527,7 +544,8 @@ void generateBill() {
             }
         }
     }
-
+// Calculate Room count based price
+{
     if (standardCount > 0) {
         int standardPrice = 999;
         fprintf(billFile, "Room (Standard) x %d = %d\n", standardCount, standardPrice * standardCount);
@@ -564,7 +582,10 @@ void generateBill() {
         total += superiorPrice * superiorCount;
     }
 
-    // Calculate food charges
+}
+
+// Calculate food charges
+{
     char foodFileName[25];
     sprintf(foodFileName, "Food_%s.txt", GuestName);
     FILE *foodFile = fopen(foodFileName, "r");
@@ -578,8 +599,11 @@ void generateBill() {
         }
         fclose(foodFile);
     }
+}
 
-    // Calculate GST
+
+// Calculate GST
+{
     float gst;
     if (total < 1000) {
         gst = total * 0.12;
@@ -592,13 +616,19 @@ void generateBill() {
         fprintf(billFile, "18%% GST   = %d\n", (int)gst);
     }
     total += gst;
+    printf("Your total is %d \n",total);
+}
+
+}
 
     // Print total bill
     fprintf(billFile, "Total: %d\n", (int)total);
     fclose(billFile);
-    printf("Bill generated successfully!\n");
 }
 
+    printf("Bill with your User-name is generated successfully! \n");
+}
+//Admin Function to add Food Items
 void addFoodItem() {
     char res = 'y';
     while (res == 'y') {
@@ -626,32 +656,38 @@ void addFoodItem() {
     }
     printf("Food items added successfully!\n");
 }
-
+//main program
 int main() {
     initRooms();
     initFoodItems();
     int choice;
-    printf("1. Register\n");
-    printf("2. Login as guest\n");
-    printf("3. Login as admin\n");
-    printf("4. Exit\n");
-    printf("Enter your choice: ");
-    scanf("%d", &choice);
-    switch (choice) {
-        case 1:
-            registerGuest();
-            break;
-        case 2:
-            loginGuest();
-            break;
-        case 3:
-            adminLogin();
-            break;
-        case 4:
-            exit(0);
-            break;
-        default:
-            printf("Invalid choice!\n");
+    while(1){
+        system("cls");
+        printf("______________________________________________________________________________________________________________________\n\n");
+        printf("                                                       Loophole Hotel\n");
+        printf("______________________________________________________________________________________________________________________\n\n");
+        printf("1. Register\n");
+        printf("2. Login as guest\n");
+        printf("3. Login as admin\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                registerGuest();
+                break;
+            case 2:
+                loginGuest();
+                break;
+            case 3:
+                adminLogin();
+                break;
+            case 4:
+                exit(0);
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
     }
     return 0;
 }

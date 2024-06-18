@@ -1,6 +1,0 @@
-Room (Standard) x 1 = 999
-Room (Executive) x 1 = 4999
-Veg_pulav x 1 = 90
-Chicken_tikka x 2 = 300
-15% GST   = 958
-Total: 7346

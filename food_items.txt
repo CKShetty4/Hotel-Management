@@ -1,4 +1,0 @@
-Gobi_half 30 1
-Gobi_full 50 1
-Chicken_tikka 150 1
-Veg_pulav 90 1
