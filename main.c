@@ -119,6 +119,16 @@ void loginGuest() {
         sscanf(line, "%s %s", fileUsername, filePassword);
         if (strcmp(username, fileUsername) == 0 && strcmp(password, filePassword) == 0) {
             printf("Login successful!\n");
+
+            // Create a currentuser.txt file and store the username
+            FILE *currentUserFile = fopen("currentuser.txt", "w");
+            if (currentUserFile == NULL) {
+                printf("Error creating currentuser.txt file!\n");
+                return;
+            }
+            fprintf(currentUserFile, "%s", username);
+            fclose(currentUserFile);
+
             guestMenu();
             return;
         }
@@ -142,41 +152,50 @@ void adminLogin() {
 }
 
 void guestMenu() {
-    system("cls");
     int choice;
-    printf("1. View rooms\n");
-    printf("2. Book room\n");
-    printf("3. Cancel booking\n");
-    printf("4. View food items\n");
-    printf("5. Order food\n");
-    printf("6. Generate bill\n");
-    printf("7. Exit\n");
-    printf("Enter your choice: ");
-    scanf("%d", &choice);
-    switch (choice) {
-        case 1:
-            viewRooms();
-            break;
-        case 2:
-            bookRoom();
-            break;
-        case 3:
-            cancelBooking();
-            break;
-        case 4:
-            viewFoodItems();
-            break;
-        case 5:
-            orderFood();
-            break;
-        case 6:
-            generateBill();
-            break;
-        case 7:
-            exit(0);
-            break;
-        default:
-            printf("Invalid choice!\n");
+    while (1) {
+        system("cls");
+        printf("1. View rooms\n");
+        printf("2. Book room\n");
+        printf("3. Cancel booking\n");
+        printf("4. View food items\n");
+        printf("5. Order food\n");
+        printf("6. Generate bill\n");
+        printf("7. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                viewRooms();
+                getch(); // wait for user to press a key
+                break;
+            case 2:
+                bookRoom();
+                getch(); // wait for user to press a key
+                break;
+            case 3:
+                cancelBooking();
+                getch(); // wait for user to press a key
+                break;
+            case 4:
+                viewFoodItems();
+                getch(); // wait for user to press a key
+                break;
+            case 5:
+                orderFood();
+                getch(); // wait for user to press a key
+                break;
+            case 6:
+                generateBill();
+                getch(); // wait for user to press a key
+                break;
+            case 7:
+                exit(0);
+                break;
+            default:
+                printf("Invalid choice!\n");
+                getch(); // wait for user to press a key
+        }
     }
 }
 
@@ -291,9 +310,20 @@ void bookRoom() {
         return;
     }
 
-    printf("Enter guest name: ");
+    FILE *file = fopen("currentuser.txt", "r");
+    if (file == NULL) {
+        printf("Could not open file\n");
+        return 1;
+    }
+
     char guestName[20];
-    scanf("%19s", guestName);
+    if (fscanf(file, "%19s", guestName) != 1) {
+        printf("Could not read from file\n");
+        fclose(file);
+        return 1;
+    }
+
+    fclose(file);
 
     int roomNumber = -1;
     for (int i = 0; i < numRooms; i++) {
