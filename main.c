@@ -255,71 +255,100 @@ void viewRooms() {
 
 
 void bookRoom() {
-    int roomType, numRoomsAvailable;
+    int roomType;
     printf("Enter room type (1: Standard, 2: Executive, 3: Presidential_Suite, 4: Penthouse_Suite, 5: Deluxe, 6: Superior): ");
     scanf("%d", &roomType);
 
+    char roomTypeName[20];
     switch (roomType) {
-       case 1:
-            numRoomsAvailable = getNumRoomsAvailable("Standard");
-            if (numRoomsAvailable == 0) {
-                printf("No Standard rooms available!\n");
-                return;
-            }
-            assignRoom("Standard", numRoomsAvailable);
+        case 1:
+            strcpy(roomTypeName, "Standard");
             break;
         case 2:
-            numRoomsAvailable = getNumRoomsAvailable("Executive");
-            if (numRoomsAvailable == 0) {
-                printf("No Executive rooms available!\n");
-                return;
-            }
-            assignRoom("Executive", numRoomsAvailable);
+            strcpy(roomTypeName, "Executive");
             break;
         case 3:
-            numRoomsAvailable = getNumRoomsAvailable("Presidential_Suite");
-            if (numRoomsAvailable == 0) {
-                printf("No Presidential_Suites available!\n");
-                return;
-            }
-            assignRoom("Presidential_Suite", numRoomsAvailable);
+            strcpy(roomTypeName, "Presidential_Suite");
             break;
         case 4:
-            numRoomsAvailable = getNumRoomsAvailable("Penthouse_Suite");
-            if (numRoomsAvailable == 0) {
-                printf("No Penthouse_Suites available!\n");
-                return;
-            }
-            assignRoom("Penthouse_Suite", numRoomsAvailable);
+            strcpy(roomTypeName, "Penthouse_Suite");
             break;
         case 5:
-            numRoomsAvailable = getNumRoomsAvailable("Deluxe");
-            if (numRoomsAvailable == 0) {
-                printf("No Deluxe rooms available!\n");
-                return;
-            }
-            assignRoom("Deluxe", numRoomsAvailable);
+            strcpy(roomTypeName, "Deluxe");
             break;
         case 6:
-            numRoomsAvailable = getNumRoomsAvailable("Superior");
-            if (numRoomsAvailable == 0) {
-                printf("No Superior rooms available!\n");
-                return;
-            }
-            assignRoom("Superior", numRoomsAvailable);
+            strcpy(roomTypeName, "Superior");
             break;
         default:
             printf("Invalid room type!\n");
             return;
     }
 
-    printf("Room booked successfully!\n");
+    int numAvailableRooms = getNumRoomsAvailable(roomTypeName);
+
+    if (numAvailableRooms == 0) {
+        printf("No %s rooms available!\n", roomTypeName);
+        return;
+    }
+
+    printf("Enter guest name: ");
+    char guestName[20];
+    scanf("%19s", guestName);
+
+    int roomNumber = -1;
+    for (int i = 0; i < numRooms; i++) {
+        if (strcmp(rooms[i].roomType, roomTypeName) == 0 && rooms[i].isBooked == 0) {
+            roomNumber = rooms[i].roomNumber;
+            rooms[i].isBooked = 1;
+            strcpy(rooms[i].guestName, guestName);
+            break;
+        }
+    }
+
+    if (roomNumber == -1) {
+        printf("Error booking the room!\n");
+        return;
+    }
+
+    // Read from the existing file
+    FILE *fp = fopen("room.txt", "r");
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    // Create a temporary file
+    FILE *temp = fopen("temp.txt", "w");
+    if (temp == NULL) {
+        printf("Error creating temporary file!\n");
+        return;
+    }
+
+    char line[100];
+    while (fgets(line, sizeof(line), fp)) {
+        int roomNum, isBooked;
+        char roomType[20], guest[20];
+        sscanf(line, "%d %s %d %s", &roomNum, roomType, &isBooked, guest);
+
+        if (roomNum == roomNumber) {
+            fprintf(temp, "%d %s %d %s\n", roomNum, roomType, 1, guestName);
+        } else {
+            fprintf(temp, "%d %s %d %s\n", roomNum, roomType, isBooked, guest);
+        }
+    }
+
+    fclose(fp);
+    fclose(temp);
+
+    // Replace the original file with the temporary file
+    remove("room.txt");
+    rename("temp.txt", "room.txt");
 }
 
 int getNumRoomsAvailable(const char* roomType) {
     int count = 0;
     for (int i = 0; i < numRooms; i++) {
-        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0) {
+        if (strcmp(rooms[i].roomType, roomType) == 0 && rooms[i].isBooked == 0) {
             count++;
         }
     }
@@ -328,18 +357,26 @@ int getNumRoomsAvailable(const char* roomType) {
 
 void assignRoom(const char* roomType, int numRoomsAvailable) {
     for (int i = 0; i < numRooms; i++) {
-        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0) {
+        if (strcmp(rooms[i].guestName, "") == 0 && strcmp(rooms[i].roomType, roomType) == 0 && rooms[i].isBooked == 0) {
             printf("Enter guest name: ");
             scanf("%19s", rooms[i].guestName);
-            rooms[i].isBooked = true;
+            rooms[i].isBooked = 1;
             FILE *fp = fopen("room.txt", "w");
             for (int j = 0; j < numRooms; j++) {
-                fprintf(fp, "%d %s %d %s\n", rooms[j].roomNumber, rooms[j].roomType, rooms[j].isBooked, rooms[j].guestName);
+                fprintf(fp, "%d %s %d ", rooms[j].roomNumber, rooms[j].roomType, rooms[j].isBooked);
+                if (rooms[j].isBooked == 1) {
+                    fprintf(fp, "%s\n", rooms[j].guestName);
+                } else {
+                    fprintf(fp, "\n");
+                }
             }
             fclose(fp);
+
+            printf("Room booked successfully!\n");
             return;
         }
     }
+    printf("No available rooms of type %s\n", roomType);
 }
 
 void cancelBooking() {
